@@ -857,7 +857,6 @@ def train_concept(
     You can find a lot of relevant instructions here: https://github.com/JoePenna/Dreambooth-Stable-Diffusion
     """
     configure_logging()
-    target_size = 512
     # Step 1. Crop and enhance the training images
     prepped_images_path = os.path.join(concept_images_dir, "prepped-images")
     image_filenames = get_image_filenames(concept_images_dir)
@@ -879,6 +878,7 @@ def train_concept(
         if not preconfirmed and not click.confirm("Continue?"):
             return
 
+        target_size = 512
         prep_images(
             images_dir=concept_images_dir, is_person=is_person, target_size=target_size
         )

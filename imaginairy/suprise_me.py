@@ -63,20 +63,7 @@ def suprise_me_prompts(img, person=None):
         person = bool(detect_faces(img))
 
     if person:
-        for prompt_text, strength, neg_prompt_text in person_prompts:
-            prompts.append(
-                ImaginePrompt(
-                    prompt_text,
-                    init_image=img,
-                    prompt_strength=strength,
-                    negative_prompt=neg_prompt_text,
-                    model="edit",
-                    steps=20,
-                )
-            )
-
-    for prompt_text, strength, neg_prompt_text in generic_prompts:
-        prompts.append(
+        prompts.extend(
             ImaginePrompt(
                 prompt_text,
                 init_image=img,
@@ -85,8 +72,19 @@ def suprise_me_prompts(img, person=None):
                 model="edit",
                 steps=20,
             )
+            for prompt_text, strength, neg_prompt_text in person_prompts
         )
-
+    prompts.extend(
+        ImaginePrompt(
+            prompt_text,
+            init_image=img,
+            prompt_strength=strength,
+            negative_prompt=neg_prompt_text,
+            model="edit",
+            steps=20,
+        )
+        for prompt_text, strength, neg_prompt_text in generic_prompts
+    )
     return prompts
 
 
@@ -112,15 +110,14 @@ def create_suprise_me_images(img, outdir, person=None, make_gif=True):
         new_filename = os.path.join(imgs_path, f"suprise_me_{base_count:03d}.gif")
         simg = pillow_fit_image_within(img, prompts[0].width, prompts[0].height)
         gif_imgs = [simg]
+        x = 15
+        y = 485
+
         for prompt, filename in zip(prompts, generated_filenames):
             gen_img = LazyLoadingImage(filepath=filename)
             draw = ImageDraw.Draw(gen_img)
 
-            font_size = 16
-            font = ImageFont.truetype(f"{PKG_ROOT}/data/DejaVuSans.ttf", font_size)
-
-            x = 15
-            y = 485
+            font = ImageFont.truetype(f"{PKG_ROOT}/data/DejaVuSans.ttf", 16)
 
             draw.text((x, y), prompt.prompt_text, font=font, fill=(255, 255, 255))
             gif_imgs.append(gen_img)

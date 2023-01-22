@@ -123,17 +123,18 @@ class ImageLoggingContext:
     def log_latents(self, latents, description):
         from imaginairy.img_utils import model_latents_to_pillow_imgs  # noqa
 
-        if "predicted_latent" in description:
-            if (
-                self.step_count - self.last_progress_img_step
-            ) > self.progress_img_interval_steps:
-                if (
-                    time.perf_counter() - self.last_progress_img_ts
-                    > self.progress_img_interval_min_s
-                ):
-                    self.log_progress_latent(latents)
-                    self.last_progress_img_step = self.step_count
-                    self.last_progress_img_ts = time.perf_counter()
+        if (
+            "predicted_latent" in description
+            and (self.step_count - self.last_progress_img_step)
+            > self.progress_img_interval_steps
+            and (
+                time.perf_counter() - self.last_progress_img_ts
+                > self.progress_img_interval_min_s
+            )
+        ):
+            self.log_progress_latent(latents)
+            self.last_progress_img_step = self.step_count
+            self.last_progress_img_ts = time.perf_counter()
 
         if not self.debug_img_callback:
             return

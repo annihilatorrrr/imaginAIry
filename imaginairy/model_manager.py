@@ -107,20 +107,18 @@ def load_model_from_config(config, weights_location):
             sys.exit(1)
         raise e
     except RuntimeError as e:
-        if "PytorchStreamReader failed reading zip archive" in str(e):
-            if weights_location.startswith("http"):
-                logger.warning("Corrupt checkpoint. deleting and re-downloading...")
-                os.remove(ckpt_path)
-                ckpt_path = get_cached_url_path(weights_location, category="weights")
-                pl_sd = load_tensors(ckpt_path, map_location="cpu")
+        if "PytorchStreamReader failed reading zip archive" in str(
+            e
+        ) and weights_location.startswith("http"):
+            logger.warning("Corrupt checkpoint. deleting and re-downloading...")
+            os.remove(ckpt_path)
+            ckpt_path = get_cached_url_path(weights_location, category="weights")
+            pl_sd = load_tensors(ckpt_path, map_location="cpu")
         if pl_sd is None:
             raise e
     if "global_step" in pl_sd:
         logger.debug(f"Global Step: {pl_sd['global_step']}")
-    if "state_dict" in pl_sd:
-        state_dict = pl_sd["state_dict"]
-    else:
-        state_dict = pl_sd
+    state_dict = pl_sd["state_dict"] if "state_dict" in pl_sd else pl_sd
     model = instantiate_from_config(config.model)
     model.init_from_state_dict(state_dict)
 
@@ -246,8 +244,9 @@ def resolve_model_paths(
 
 
 def get_model_default_image_size(weights_location):
-    model_config = iconfig.MODEL_CONFIG_SHORTCUTS.get(weights_location, None)
-    if model_config:
+    if model_config := iconfig.MODEL_CONFIG_SHORTCUTS.get(
+        weights_location, None
+    ):
         return model_config.default_image_size
     return 512
 
@@ -259,8 +258,7 @@ def get_current_diffusion_model():
 def get_cache_dir():
     xdg_cache_home = os.getenv("XDG_CACHE_HOME", None)
     if xdg_cache_home is None:
-        user_home = os.getenv("HOME", None)
-        if user_home:
+        if user_home := os.getenv("HOME", None):
             xdg_cache_home = os.path.join(user_home, ".cache")
 
     if xdg_cache_home is not None:
@@ -351,7 +349,7 @@ def extract_huggingface_repo_commit_file_from_url(url):
     parsed_url = urllib.parse.urlparse(url)
     path_components = parsed_url.path.strip("/").split("/")
 
-    repo = "/".join(path_components[0:2])
+    repo = "/".join(path_components[:2])
     assert path_components[2] == "resolve"
     commit_hash = path_components[3]
     filepath = "/".join(path_components[4:])

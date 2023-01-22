@@ -61,7 +61,7 @@ class ResidualBlock(nn.Module):
     def __init__(self, *main, skip=None):
         super().__init__()
         self.main = nn.Sequential(*main)
-        self.skip = skip if skip else nn.Identity()
+        self.skip = skip or nn.Identity()
 
     def forward(self, input):
         return self.main(input) + self.skip(input)
@@ -97,7 +97,7 @@ class ConditionedResidualBlock(ConditionedModule):
     def __init__(self, *main, skip=None):
         super().__init__()
         self.main = ConditionedSequential(*main)
-        self.skip = skip if skip else nn.Identity()
+        self.skip = skip or nn.Identity()
 
     def forward(self, input, cond):
         skip = (

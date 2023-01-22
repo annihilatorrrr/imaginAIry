@@ -99,10 +99,7 @@ class KDiffusionSampler(ImageSampler, ABC):
 
         # if our number of steps is zero, just return the initial latent
         if sigmas.nelement() == 0:
-            if orig_latent is not None:
-                return orig_latent
-            return initial_latent
-
+            return orig_latent if orig_latent is not None else initial_latent
         x = initial_latent * sigmas[0]
         log_latent(x, "initial_sigma_noised_tensor")
         if denoiser_cls is None:

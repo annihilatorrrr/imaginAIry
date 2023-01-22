@@ -19,10 +19,7 @@ def get_device() -> str:
     if torch.cuda.is_available():
         return "cuda"
 
-    if torch.backends.mps.is_available():
-        return "mps:0"
-
-    return "cpu"
+    return "mps:0" if torch.backends.mps.is_available() else "cpu"
 
 
 @lru_cache
@@ -30,7 +27,7 @@ def get_hardware_description(device_type: str) -> str:
     """Description of the hardware being used."""
     desc = platform.platform()
     if device_type == "cuda":
-        desc += "-" + torch.cuda.get_device_name(0)
+        desc += f"-{torch.cuda.get_device_name(0)}"
 
     return desc
 
@@ -161,12 +158,11 @@ def randn_seeded(seed: int, size: List[int]) -> Tensor:
     """Generate a random tensor with a given seed."""
     g_cpu = torch.Generator()
     g_cpu.manual_seed(seed)
-    noise = torch.randn(
+    return torch.randn(
         size,
         device="cpu",
         generator=g_cpu,
     )
-    return noise
 
 
 def check_torch_working():

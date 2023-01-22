@@ -162,11 +162,7 @@ class ResnetBlock(nn.Module):
         del h7
 
         if self.in_channels != self.out_channels:
-            if self.use_conv_shortcut:
-                x = self.conv_shortcut(x)
-            else:
-                x = self.nin_shortcut(x)
-
+            x = self.conv_shortcut(x) if self.use_conv_shortcut else self.nin_shortcut(x)
         return x + h8
 
 
@@ -431,7 +427,7 @@ class Model(nn.Module):
             attn = nn.ModuleList()
             block_in = ch * in_ch_mult[i_level]
             block_out = ch * ch_mult[i_level]
-            for i_block in range(self.num_res_blocks):
+            for _ in range(self.num_res_blocks):
                 block.append(
                     ResnetBlock(
                         in_channels=block_in,
@@ -598,7 +594,7 @@ class Encoder(nn.Module):
             attn = nn.ModuleList()
             block_in = ch * in_ch_mult[i_level]
             block_out = ch * ch_mult[i_level]
-            for i_block in range(self.num_res_blocks):
+            for _ in range(self.num_res_blocks):
                 block.append(
                     ResnetBlock(
                         in_channels=block_in,
@@ -741,7 +737,7 @@ class Decoder(nn.Module):
             block = nn.ModuleList()
             attn = nn.ModuleList()
             block_out = ch * ch_mult[i_level]
-            for i_block in range(self.num_res_blocks + 1):
+            for _ in range(self.num_res_blocks + 1):
                 block.append(
                     ResnetBlock(
                         in_channels=block_in,
@@ -862,11 +858,7 @@ class SimpleDecoder(nn.Module):
 
     def forward(self, x):
         for i, layer in enumerate(self.model):
-            if i in [1, 2, 3]:
-                x = layer(x, None)
-            else:
-                x = layer(x)
-
+            x = layer(x, None) if i in [1, 2, 3] else layer(x)
         h = self.norm_out(x)
         h = nonlinearity(h)
         x = self.conv_out(h)
@@ -896,7 +888,7 @@ class UpsampleDecoder(nn.Module):
         for i_level in range(self.num_resolutions):
             res_block = []
             block_out = ch * ch_mult[i_level]
-            for i_block in range(self.num_res_blocks + 1):
+            for _ in range(self.num_res_blocks + 1):
                 res_block.append(
                     ResnetBlock(
                         in_channels=block_in,

@@ -146,9 +146,7 @@ class ImaginePrompt:
         self.width = width
         self.upscale = upscale
         self.fix_faces = fix_faces
-        self.fix_faces_fidelity = (
-            fix_faces_fidelity if fix_faces_fidelity else self.DEFAULT_FACE_FIDELITY
-        )
+        self.fix_faces_fidelity = fix_faces_fidelity or self.DEFAULT_FACE_FIDELITY
         self.sampler_type = sampler_type.lower()
         self.conditioning = conditioning
         self.mask_prompt = mask_prompt
@@ -167,8 +165,7 @@ class ImaginePrompt:
             self.height = self.height or get_model_default_image_size(self.model)
 
         if negative_prompt is None:
-            model_config = config.MODEL_CONFIG_SHORTCUTS.get(self.model, None)
-            if model_config:
+            if model_config := config.MODEL_CONFIG_SHORTCUTS.get(self.model, None):
                 negative_prompt = model_config.default_negative_prompt
             else:
                 negative_prompt = config.DEFAULT_NEGATIVE_PROMPT
@@ -299,9 +296,11 @@ class ImagineResult:
         }
 
     def timings_str(self):
-        if not self.timings:
-            return ""
-        return " ".join(f"{k}:{v:.2f}s" for k, v in self.timings.items())
+        return (
+            " ".join(f"{k}:{v:.2f}s" for k, v in self.timings.items())
+            if self.timings
+            else ""
+        )
 
     def _exif(self):
         exif = Image.Exif()
